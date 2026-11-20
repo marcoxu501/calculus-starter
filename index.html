@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微積分入門 · Calculus Starter</title>
+<style>
+:root {
+  --bg: #0f0f18;
+  --card: #1a1a28;
+  --accent: #8b5cf6;
+  --accent2: #22d3ee;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.container { max-width: 900px; margin: 0 auto; padding: 20px; }
+header { text-align: center; padding: 30px 0 10px; }
+h1 { font-size: 28px; font-weight: 700; }
+.subtitle { color: var(--muted); margin-top: 6px; font-size: 15px; }
+.nav { display: flex; gap: 8px; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
+.nav button, .btn {
+  background: var(--card); border: 1px solid #2a2a3a; color: var(--text);
+  padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 14px;
+}
+.nav button.active, .btn.primary { background: var(--accent); border-color: var(--accent); }
+.card { background: var(--card); border-radius: 16px; padding: 22px; margin-bottom: 16px; border: 1px solid #2a2a3a; }
+.progress-bar { height: 8px; background: #2a2a3a; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.3s; }
+.level-list { display: grid; gap: 10px; }
+.level-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px; background: #161622; border-radius: 12px; cursor: pointer;
+}
+.level-item:hover { background: #1e1e2e; }
+.level-item.completed { border-left: 4px solid var(--success); }
+.question { font-size: 19px; font-weight: 600; margin-bottom: 18px; }
+.options { display: grid; gap: 8px; }
+.option { padding: 13px 15px; background: #161622; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+.option:hover { border-color: #3a3a4a; }
+.option.correct { border-color: var(--success); background: rgba(16,185,129,0.12); }
+.option.wrong { border-color: var(--danger); background: rgba(239,68,68,0.12); }
+.explanation { margin-top: 18px; padding: 14px; background: #12121c; border-radius: 10px; font-size: 14.5px; line-height: 1.65; white-space: pre-wrap; }
+.leaderboard-item, .comment { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2a2a3a; }
+.score { color: var(--accent2); font-weight: 600; }
+.hidden { display: none; }
+input, select, textarea {
+  width: 100%; background: #12121c; border: 1px solid #2a2a3a; color: var(--text);
+  padding: 11px; border-radius: 10px; font-size: 15px; margin-top: 6px;
+}
+.lang-bar { text-align: right; margin-bottom: 8px; }
+.lang-bar select { width: auto; display: inline-block; padding: 6px 10px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="lang-bar">
+    <select id="langSelect" onchange="changeLang(this.value)">
+      <option value="zh-TW">繁體中文</option>
+      <option value="zh-CN">简体中文</option>
+      <option value="en">English</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+    </select>
+  </div>
+
+  <header>
+    <h1 data-i18n="title">微積分入門</h1>
+    <div class="subtitle" data-i18n="subtitle">超簡單 · 可重複練習 · 有解釋 · 有積分 · 可比較進度</div>
+  </header>
+
+  <div class="nav">
+    <button class="active" onclick="showTab('home')" data-i18n="home">首頁</button>
+    <button onclick="showTab('levels')" data-i18n="levels">關卡練習</button>
+    <button onclick="showTab('leaderboard')" data-i18n="leaderboard">排行榜</button>
+    <button onclick="showTab('discuss')" data-i18n="discuss">討論區</button>
+  </div>
+
+  <div id="tab-home">
+    <div class="card">
+      <h2 data-i18n="yourProgress">你的進度</h2>
+      <div style="margin-top:12px"><span data-i18n="totalScore">總積分</span>：<span class="score" id="totalScore">0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="overallProgress" style="width:0%"></div></div>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px" data-i18n="progressHint">完成關卡就能獲得積分，資料會存在這台裝置。</p>
+    </div>
+    <div class="card">
+      <h2 data-i18n="whatIs">什麼是微積分？</h2>
+      <p style="margin-top:12px;line-height:1.7;color:#cbd5e1" data-i18n="intro">
+        微積分是研究「變化」的數學。<br><br>
+        • 微分：看變化有多快（斜率、速度）<br>
+        • 積分：把很多小小的變化加起來（面積、總量）<br><br>
+        我們從最基礎開始，一步一步練習。
+      </p>
+    </div>
+  </div>
+
+  <div id="tab-levels" class="hidden">
+    <div class="card">
+      <h2 data-i18n="selectLevel">選擇關卡</h2>
+      <div class="level-list" id="levelList"></div>
+    </div>
+  </div>
+
+  <div id="tab-practice" class="hidden">
+    <div class="card"><div id="practiceContent"></div></div>
+  </div>
+
+  <div id="tab-leaderboard" class="hidden">
+    <div class="card">
+      <h2 data-i18n="leaderboard">排行榜</h2>
+      <p style="color:var(--muted);font-size:14px;margin:8px 0 16px" data-i18n="lbHint">本地排行示範（之後可升級為真實多裝置排行）</p>
+      <div id="leaderboardList"></div>
+    </div>
+  </div>
+
+  <div id="tab-discuss" class="hidden">
+    <div class="card">
+      <h2 data-i18n="discuss">討論區</h2>
+      <input type="text" id="commentName" data-i18n-placeholder="nickname" placeholder="你的暱稱">
+      <textarea id="commentText" rows="3" data-i18n-placeholder="writeComment" placeholder="寫下你的問題或心得..."></textarea>
+      <button class="btn primary" style="margin-top:10px" onclick="postComment()" data-i18n="post">發佈</button>
+      <div id="comments" style="margin-top:20px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const i18n = {
+  'zh-TW': {
+    title: '微積分入門', subtitle: '超簡單 · 可重複練習 · 有解釋 · 有積分 · 可比較進度',
+    home: '首頁', levels: '關卡練習', leaderboard: '排行榜', discuss: '討論區',
+    yourProgress: '你的進度', totalScore: '總積分', progressHint: '完成關卡就能獲得積分，資料會存在這台裝置。',
+    whatIs: '什麼是微積分？', intro: '微積分是研究「變化」的數學。\n\n• 微分：看變化有多快（斜率、速度）\n• 積分：把很多小小的變化加起來（面積、總量）\n\n我們從最基礎開始，一步一步練習。',
+    selectLevel: '選擇關卡', lbHint: '本地排行示範（之後可升級為真實多裝置排行）',
+    nickname: '你的暱稱', writeComment: '寫下你的問題或心得...', post: '發佈',
+    next: '下一題', finish: '關卡完成！', back: '返回關卡', points: '積分'
+  },
+  'zh-CN': {
+    title: '微积分入门', subtitle: '超简单 · 可重复练习 · 有解释 · 有积分 · 可比较进度',
+    home: '首页', levels: '关卡练习', leaderboard: '排行榜', discuss: '讨论区',
+    yourProgress: '你的进度', totalScore: '总积分', progressHint: '完成关卡就能获得积分，数据会存在这台设备。',
+    whatIs: '什么是微积分？', intro: '微积分是研究“变化”的数学。\n\n• 微分：看变化有多快（斜率、速度）\n• 积分：把很多小小的变化加起来（面积、总量）\n\n我们从最基础开始，一步一步练习。',
+    selectLevel: '选择关卡', lbHint: '本地排行示范（之后可升级为真实多设备排行）',
+    nickname: '你的昵称', writeComment: '写下你的问题或心得...', post: '发布',
+    next: '下一题', finish: '关卡完成！', back: '返回关卡', points: '积分'
+  },
+  'en': {
+    title: 'Calculus Starter', subtitle: 'Super simple · Repeatable practice · Explanations · Points · Compare progress',
+    home: 'Home', levels: 'Levels', leaderboard: 'Leaderboard', discuss: 'Discuss',
+    yourProgress: 'Your Progress', totalScore: 'Total Score', progressHint: 'Complete levels to earn points. Data is stored on this device.',
+    whatIs: 'What is Calculus?', intro: 'Calculus is the mathematics of change.\n\n• Differentiation: how fast something changes (slope, speed)\n• Integration: adding up many small changes (area, total amount)\n\nWe start from the basics and practice step by step.',
+    selectLevel: 'Select Level', lbHint: 'Local leaderboard demo (can be upgraded to real multi-device later)',
+    nickname: 'Your nickname', writeComment: 'Write your question or thought...', post: 'Post',
+    next: 'Next', finish: 'Level Complete!', back: 'Back to Levels', points: 'pts'
+  },
+  'ja': {
+    title: '微積分入門', subtitle: '超簡単 · 繰り返し練習 · 解説付き · ポイント · 進捗比較',
+    home: 'ホーム', levels: 'レベル', leaderboard: 'ランキング', discuss: '討論',
+    yourProgress: 'あなたの進捗', totalScore: '合計ポイント', progressHint: 'レベルをクリアするとポイントが獲得できます。',
+    whatIs: '微積分とは？', intro: '微積分は「変化」を研究する数学です。\n\n• 微分：変化の速さ（傾き、速度）\n• 積分：小さな変化を足し合わせる（面積、総量）',
+    selectLevel: 'レベル選択', lbHint: 'ローカルランキング（後で本物にアップグレード可能）',
+    nickname: 'ニックネーム', writeComment: '質問や感想を書いてください...', post: '投稿',
+    next: '次へ', finish: 'レベルクリア！', back: 'レベルに戻る', points: 'pt'
+  },
+  'ko': {
+    title: '미적분 입문', subtitle: '초간단 · 반복 연습 · 해설 포함 · 포인트 · 진도 비교',
+    home: '홈', levels: '레벨', leaderboard: '랭킹', discuss: '토론',
+    yourProgress: '내 진도', totalScore: '총 포인트', progressHint: '레벨을 완료하면 포인트를 얻습니다.',
+    whatIs: '미적분이란?', intro: '미적분은 “변화”를 연구하는 수학입니다.\n\n• 미분: 변화 속도 (기울기, 속도)\n• 적분: 작은 변화들을 더하기 (면적, 총량)',
+    selectLevel: '레벨 선택', lbHint: '로컬 랭킹 데모',
+    nickname: '닉네임', writeComment: '질문이나 생각을 적어주세요...', post: '게시',
+    next: '다음', finish: '레벨 완료!', back: '레벨로 돌아가기', points: '점'
+  }
+};
+
+let lang = localStorage.getItem('calcLang') || 'zh-TW';
+
+function t(key) { return (i18n[lang] || i18n['zh-TW'])[key] || key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  document.getElementById('langSelect').value = lang;
+}
+
+function changeLang(newLang) {
+  lang = newLang;
+  localStorage.setItem('calcLang', lang);
+  applyLang();
+  renderLevels();
+  renderLeaderboard();
+  renderComments();
+}
+
+const levels = [
+  { id: 1, title: "關卡 1：什麼是斜率？", points: 50, questions: [
+    { q: "直線從 (0,0) 到 (2,4)，斜率是？", options: ["1","2","4","0"], answer: 1, exp: "斜率 = 垂直變化 ÷ 水平變化 = 4÷2 = 2。\n註解：斜率就是「上升多少 ÷ 前進多少」。" },
+    { q: "每秒移動 3 公尺，變化率是？", options: ["3 公尺/秒","1 公尺/秒","9 公尺/秒","0"], answer: 0, exp: "變化率就是速度 = 3 公尺/秒。這是微分的基本概念。" }
+  ]},
+  { id: 2, title: "關卡 2：次方規則（微分）", points: 80, questions: [
+    { q: "f(x) = x² 的導數是？", options: ["x","2x","x³","2"], answer: 1, exp: "次方規則：指數拿到前面，指數減 1。x² → 2x。" },
+    { q: "f(x) = 3x⁴ 的導數是？", options: ["12x³","3x³","12x⁴","x³"], answer: 0, exp: "3 × 4 = 12，指數 4-1=3 → 12x³。" },
+    { q: "f(x) = 5x 的導數是？", options: ["5","5x","x","0"], answer: 0, exp: "一次方的導數就是係數本身。5x → 5。" }
+  ]},
+  { id: 3, title: "關卡 3：常數與和差規則", points: 70, questions: [
+    { q: "f(x) = 7 的導數是？", options: ["7","0","1","x"], answer: 1, exp: "常數的導數永遠是 0，因為沒有變化。" },
+    { q: "f(x) = x² + 3x 的導數是？", options: ["2x+3","2x","x+3","2x+3x"], answer: 0, exp: "分別微分再相加：2x + 3。" }
+  ]},
+  { id: 4, title: "關卡 4：簡單積分", points: 100, questions: [
+    { q: "∫ 2x dx = ?", options: ["x² + C","2x² + C","x + C","2 + C"], answer: 0, exp: "積分是微分的反向。2x 積分後是 x²，再加上常數 C。" },
+    { q: "∫ 1 dx = ?", options: ["x + C","1","0","x² + C"], answer: 0, exp: "常數 1 的積分是 x + C。" }
+  ]},
+  { id: 5, title: "關卡 5：綜合練習", points: 120, questions: [
+    { q: "f(x) = 4x³ - 2x + 5 的導數是？", options: ["12x² - 2","12x² - 2x","4x² - 2","12x²"], answer: 0, exp: "4x³ → 12x²，-2x → -2，常數 5 → 0。結果：12x² - 2。" },
+    { q: "∫ (3x² + 4) dx = ?", options: ["x³ + 4x + C","3x³ + 4x + C","x³ + 4 + C","3x + 4x + C"], answer: 0, exp: "3x² 積分 → x³，4 積分 → 4x，再加上 C。" }
+  ]}
+];
+
+let currentLevel = null, currentQ = 0;
+let score = parseInt(localStorage.getItem('calcScore') || '0');
+let completed = JSON.parse(localStorage.getItem('calcCompleted') || '[]');
+
+function showTab(name) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  if (event?.target) event.target.classList.add('active');
+  if (name === 'levels') renderLevels();
+  if (name === 'leaderboard') renderLeaderboard();
+  if (name === 'discuss') renderComments();
+  updateScore();
+}
+
+function updateScore() {
+  document.getElementById('totalScore').textContent = score;
+  const pct = Math.min(100, (completed.length / levels.length) * 100);
+  document.getElementById('overallProgress').style.width = pct + '%';
+}
+
+function renderLevels() {
+  document.getElementById('levelList').innerHTML = levels.map(l => `
+    <div class="level-item ${completed.includes(l.id) ? 'completed' : ''}" onclick="startLevel(${l.id})">
+      <div><strong>${l.title}</strong></div>
+      <div class="score">+${l.points}</div>
+    </div>
+  `).join('');
+}
+
+function startLevel(id) {
+  currentLevel = levels.find(l => l.id === id);
+  currentQ = 0;
+  showTab('practice');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentLevel.questions[currentQ];
+  document.getElementById('practiceContent').innerHTML = `
+    <div style="color:var(--muted);font-size:14px;margin-bottom:8px">${currentLevel.title} · ${currentQ+1}/${currentLevel.questions.length}</div>
+    <div class="question">${q.q}</div>
+    <div class="options">
+      ${q.options.map((opt, i) => `<div class="option" onclick="checkAnswer(${i})">${opt}</div>`).join('')}
+    </div>
+    <div id="exp" class="explanation hidden"></div>
+    <button class="btn primary" id="nextBtn" style="margin-top:16px;display:none" onclick="nextQuestion()">${t('next')}</button>
+  `;
+}
+
+function checkAnswer(idx) {
+  const q = currentLevel.questions[currentQ];
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.style.pointerEvents = 'none';
+    if (i === q.answer) el.classList.add('correct');
+    if (i === idx && i !== q.answer) el.classList.add('wrong');
+  });
+  const exp = document.getElementById('exp');
+  exp.textContent = q.exp;
+  exp.classList.remove('hidden');
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < currentLevel.questions.length) {
+    renderQuestion();
+  } else {
+    if (!completed.includes(currentLevel.id)) {
+      score += currentLevel.points;
+      completed.push(currentLevel.id);
+      localStorage.setItem('calcScore', score);
+      localStorage.setItem('calcCompleted', JSON.stringify(completed));
+    }
+    document.getElementById('practiceContent').innerHTML = `
+      <h2>${t('finish')}</h2>
+      <p style="margin:16px 0">+${currentLevel.points} ${t('points')}</p>
+      <button class="btn primary" onclick="showTab('levels')">${t('back')}</button>
+    `;
+    updateScore();
+  }
+}
+
+function renderLeaderboard() {
+  const list = [
+    { name: "你", score },
+    { name: "Alex", score: 280 },
+    { name: "小明", score: 210 },
+    { name: "Yuki", score: 190 },
+    { name: "小美", score: 150 }
+  ].sort((a,b) => b.score - a.score);
+  document.getElementById('leaderboardList').innerHTML = list.map((p, i) => `
+    <div class="leaderboard-item">
+      <div>${i+1}. ${p.name}</div>
+      <div class="score">${p.score}</div>
+    </div>
+  `).join('');
+}
+
+function renderComments() {
+  const comments = JSON.parse(localStorage.getItem('calcComments') || '[]');
+  document.getElementById('comments').innerHTML = comments.length
+    ? comments.map(c => `<div class="comment"><strong>${c.name}</strong>：${c.text}</div>`).join('')
+    : `<p style="color:var(--muted)">還沒有留言</p>`;
+}
+
+function postComment() {
+  const name = document.getElementById('commentName').value.trim() || '匿名';
+  const text = document.getElementById('commentText').value.trim();
+  if (!text) return;
+  const comments = JSON.parse(localStorage.getItem('calcComments') || '[]');
+  comments.unshift({ name, text });
+  localStorage.setItem('calcComments', JSON.stringify(comments));
+  document.getElementById('commentText').value = '';
+  renderComments();
+}
+
+applyLang();
+updateScore();
+</script>
+</body>
+</html>
